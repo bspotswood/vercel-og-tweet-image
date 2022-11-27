@@ -1,65 +1,52 @@
----
-name: Open Graph Image Generation
-slug: og-image-generation
-description: Compute and generate dynamic social card images with React components.
-framework: Next.js
-useCase: Edge Functions
-css: Tailwind
-deployUrl: https://vercel.com/new/clone?repository-url=https://github.com/vercel/examples/tree/main/edge-functions/vercel-og-nextjs&project-name=vercel-og-nextjs&repository-name=vercel-og-nextjs
-demoUrl: https://og-examples.vercel.sh/api/static
-relatedTemplates: 
-  - nextjs-boilerplate
-  - aws-s3-image-upload-nextjs
-  - platforms-starter-kit
-  - blog-starter-kit
----
+# Vercel OG Tweet Image Generator
 
-# Vercel OG + Next.js
+## Question
+Can I generate images of tweets from the OG image functionality as an edge function?
 
-This example shows how to use [Vercel OG](https://vercel.com/docs/concepts/functions/edge-functions/og-image-generation) with Next.js.
+## Expected benefits
+- Learn about edge functions on Vercel
+- Dive a little more into Next
+- Learn about the Twitter API
+- Fun
 
-## Demo
+## Overview, approach and expectations
+This project is attempting to generate an image of a Tweet as a Vercel Edge Function. The intent is to use the Twitter API to fetch the data for a given tweet and then format it in an appropriate manner for rendering within the OG Image Generation.
 
-- [Static Text](https://og-examples.vercel.sh/api/static)
-- [Vercel Card](https://og-examples.vercel.sh/api/vercel)
-- [Dynamic Text from URL Query](https://og-examples.vercel.sh/api/param)
-- [Embed SVG Image](https://og-examples.vercel.sh/api/image-svg)
-- [Dynamic PNG Image Based on URL Queries](https://og-examples.vercel.sh/api/dynamic-image?username=vercel)
-- [Custom Font](https://og-examples.vercel.sh/api/custom-font)
-- [Emoji](https://og-examples.vercel.sh/api/emoji)
-- [Languages](https://og-examples.vercel.sh/api/language)
-- [Encrypted Token](https://og-examples.vercel.sh/encrypted/a)
+My intention is to replicate what Lee Robinson did on his website, using TailwindCSS and the Twitter API to generate a custom Tweet preview structure. Assuming that the experimental support for TailwindCSS in the OG image functionality works, this might be the quickest avenue to achieve what I'm attempting to tryout here.
 
-## How to Use
+## Fallback Approaches
+An **inline styling approach** would be to use inline CSS rather than tailwind. This should be fairly simple to pull off, and I might go there eventually anyways as a test. But TailwindCSS is "experimental" so this could even be necessary to try.
 
-You can choose from one of the following two methods to use this repository:
+A **simulate and re-render approach** may be to use JSDom to simulate the browser, load the oembed HTML and script (enable scripting in JSDom), and then scrape/rework the rendered HTML into a form that we want.
 
-### One-Click Deploy
+The **custom image manipulator approach** may be to use the "jimp" library and a bunch of draw instructions to just reproduce. This might really present issues with rendering anything for embedded media. But maybe the OG image stuff could be used to create a preview of any linked-to sites and then that image is loaded into jimp for those types of tweets. This seems extreme and not somewhere I want to go, but very plausible to make it work.
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
+The **real-render approach** could be to abandon the OG image functionality and pursue using something like Puppeteer to render and capture the image.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vercel/examples/tree/main/edge-functions/vercel-og-nextjs&project-name=vercel-og-nextjs&repository-name=vercel-og-nextjs)
+An **abandonment approach** would be to just giveup, swallow your pride as a developer, and use TweetPik's API. 😆
 
-### Clone and Deploy
+## Final thoughts
+As I start this out, I'm currently not clear what will happen when links are used from within a tweet or certain other embedded media.
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
+I'll try to remember to update this readme as things evolve. Feel free to pester me if it's looking out of date and you have any questions.
 
-```bash
-npx create-next-app --example https://github.com/vercel/examples/tree/main/edge-functions/vercel-og-nextjs
-# or
-yarn create next-app --example https://github.com/vercel/examples/tree/main/edge-functions/vercel-og-nextjs
-```
+# Reference Materials
 
-Next, run Next.js in development mode:
+## Intended solution references
+-  [Vercel OG](https://vercel.com/docs/concepts/functions/edge-functions/og-image-generation) rreference documentation
+- [Vercel Examples → vercel-og-nextjs ](https://github.com/vercel/examples/tree/main/edge-functions/vercel-og-nextjs) base example and what the initial commit of this repo was based on
+- [Rebuilding the Twitter Embed Widget! (Next.js + Tailwind)](https://www.youtube.com/watch?v=xZ9OzPQORtw) - YouTube demo of how Lee Robinson implemented code for converting Twitter API data into a preview using TailwindCSS
+- [leerob.io commit for embedded tweet widget](https://github.com/leerob/leerob.io/pull/257/files#diff-33ef282f1e4d357eec528ffec87fcd7b2fe76adfe3edab628223e1d96cda383f) - The code changes referenced by Lee Robinson's video
+- [Twitter Publish](https://publish.twitter.com/#) Quick tool for seeing how Twitter would render an embed
+- [Twitter API Examples](https://developer.twitter.com/en/docs/twitter-api/data-dictionary/example-payloads) Examples of different tweets from the official API documentation
+- [Twitter API Playground](https://oauth-playground.glitch.me/?id=findTweetById&params=%28%27id%21%27939927692643917824%27%29_) Try out APIs
+- [Twitter Open API Spec](https://api.twitter.com/2/openapi.json)
+- [Swagger UI of Twitter API](https://snowcait.github.io/twitter-swagger-ui/)
+## Alternative approach information
+- [twitter-status](https://github.com/abraham/twitter-status) A project that implements a custom web component using inline styles and requiring the tweet API data. This could be good fallback reference for another approach.
+- [Using Puppeteer and Squoosh to fix the web performance of embedded tweets](https://nooshu.com/blog/2021/02/06/using-puppeteer-and-squoosh-to-fix-twitter-embeds/) Interesting article about issues with the way that the oEmbed functionality for Twitter works. Includes a large number of interesting links at the bottom.
+- [tweet-grabber](https://github.com/Nooshu/tweet-grabber) Related to previously linked article, utility that uses puppeteer to snag a tweet screenshot. 
+- [TweetPik](https://tweetpik.com/) API for rendering tweets (costs $)
+- [JSDom](https://github.com/jsdom/jsdom) Perhaps useful if I decide to try simulating the Twitter widget with an oEmbed request and then rewrite the output of that
+- [JIMP](https://www.npmjs.com/package/jimp) It's like GIMP but JavaScript, right? Could make our own routines for rendering an image using this library.
 
-```bash
-npm install
-npm run dev
-
-# or
-
-yarn
-yarn dev
-```
-
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=edge-middleware-eap) ([Documentation](https://nextjs.org/docs/deployment)).
