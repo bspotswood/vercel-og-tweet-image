@@ -42,3 +42,6 @@ yarn-error.log*
 
 # local environment settings
 .env
+
+# VS Code configuration
+.vscode
