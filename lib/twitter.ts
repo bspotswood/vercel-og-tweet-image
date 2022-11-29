@@ -1,6 +1,6 @@
 // Based on Lee Robinson's Twitter API wrapper
 
-import { TwitterApi } from "twitter-api-v2";
+import { TweetV2, TwitterApi } from "twitter-api-v2";
 
 const twitterApi = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
 
@@ -52,7 +52,7 @@ export const getTweets = async (ids) => {
     return tweets.includes.users.find((user) => user.id === author_id);
   };
 
-  const getReferencedTweets = (mainTweet) => {
+  const getReferencedTweets = (mainTweet: TweetV2) => {
     return (
       mainTweet?.referenced_tweets?.map((referencedTweet) => {
         const fullReferencedTweet = tweets.includes.tweets.find(
@@ -68,19 +68,19 @@ export const getTweets = async (ids) => {
     );
   };
 
-  return (
-    tweets.data.reduce((allTweets, tweet) => {
-      const tweetWithAuthor = {
-        ...tweet,
-        media:
-          tweet?.attachments?.media_keys.map((key) =>
-            tweets.includes.media.find((media) => media.media_key === key)
-          ) || [],
-        referenced_tweets: getReferencedTweets(tweet),
-        author: getAuthorInfo(tweet.author_id),
-      };
+  const buildMappedTweet = (tweet: TweetV2) => {
+    return {
+      ...tweet,
+      media:
+        tweet?.attachments?.media_keys.map((key) =>
+          tweets.includes.media.find((media) => media.media_key === key)
+        ) || [],
+      referenced_tweets: getReferencedTweets(tweet),
+      author: getAuthorInfo(tweet.author_id),
+    };
+  };
 
-      return [tweetWithAuthor, ...allTweets];
-    }, []) || [] // If the Twitter API key isn't set, don't break the build
-  );
+  return (tweets.data.reduce((allTweets, tweet) => {
+    return [buildMappedTweet(tweet), ...allTweets];
+  }, []) || []) as typeof buildMappedTweet[];
 };
