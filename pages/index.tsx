@@ -1,4 +1,4 @@
-import Head from 'next/head'
+import Head from "next/head";
 
 export default function Page() {
   return (
@@ -14,12 +14,12 @@ export default function Page() {
             // More info:
             // https://vercel.com/docs/concepts/projects/environment-variables
             `${
-              process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : ''
+              process.env.VERCEL_URL ? "https://" + process.env.VERCEL_URL : ""
             }/api/vercel`
           }
         />
       </Head>
       <h1>A page with Open Graph Image.</h1>
     </div>
-  )
+  );
 }

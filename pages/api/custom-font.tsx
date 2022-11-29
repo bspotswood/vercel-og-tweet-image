@@ -1,27 +1,27 @@
-import { ImageResponse } from '@vercel/og'
+import { ImageResponse } from "@vercel/og";
 
 export const config = {
-  runtime: 'experimental-edge',
-}
+  runtime: "experimental-edge",
+};
 
-const font = fetch(new URL('../../assets/TYPEWR__.TTF', import.meta.url)).then(
+const font = fetch(new URL("../../assets/TYPEWR__.TTF", import.meta.url)).then(
   (res) => res.arrayBuffer()
-)
+);
 
 export default async function handler() {
-  const fontData = await font
+  const fontData = await font;
 
   return new ImageResponse(
     (
       <div
         style={{
-          backgroundColor: 'white',
-          height: '100%',
-          width: '100%',
+          backgroundColor: "white",
+          height: "100%",
+          width: "100%",
           fontSize: 100,
-          fontFamily: 'Typewriter',
-          paddingTop: '100px',
-          paddingLeft: '50px',
+          fontFamily: "Typewriter",
+          paddingTop: "100px",
+          paddingLeft: "50px",
         }}
       >
         Hello world!
@@ -32,11 +32,11 @@ export default async function handler() {
       height: 630,
       fonts: [
         {
-          name: 'Typewriter',
+          name: "Typewriter",
           data: fontData,
-          style: 'normal',
+          style: "normal",
         },
       ],
     }
-  )
+  );
 }
