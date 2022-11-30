@@ -57,3 +57,25 @@ I'll try to remember to update this readme as things evolve. Feel free to pester
 - [TweetPik](https://tweetpik.com/) API for rendering tweets (costs $)
 - [JSDom](https://github.com/jsdom/jsdom) Perhaps useful if I decide to try simulating the Twitter widget with an oEmbed request and then rewrite the output of that
 - [JIMP](https://www.npmjs.com/package/jimp) It's like GIMP but JavaScript, right? Could make our own routines for rendering an image using this library.
+
+
+
+## Findings
+- Unable to use certain module featuers server side in the edge function
+  - I was unable to make use of the twitter-api-v2 library functionality, but I can still use its type defs
+- Seems that you can specify 'auto' for ImageResponse width/height options and it works, but typedefs complain
+- Some styles are not compatible
+  - leading-5 does not work
+    - causes it to blow up => TypeError: Cannot read properties of undefined (reading 'fontSize')
+    - I can still set the inline style equivalent (`style={{lineHeight: '1.25rem'}}`)
+  - leading-normal just complains but doesn't throw the error
+    - complains with: relative line-height utilities require that font-size be set
+  - The "!" prefix on names doesn't seem to work at all for making them !important
+  - whitespace-pre-wrap is unknown
+  - inline-grid is unknown
+  - grid-cols-1 is unknown
+  - gap-x-2 is unknown
+  - gap-y-2 is unknown
+- Need to specify svg fill color as 'fill' attribute on path rather than in 'style'
+- Might need to set div width to 100%? Not sure if something else is interferring or what
+- Typescript complains about "tw" attribute on "svg" elements, but it works

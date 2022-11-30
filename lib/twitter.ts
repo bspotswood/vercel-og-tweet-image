@@ -1,8 +1,6 @@
 // Based on Lee Robinson's Twitter API wrapper
 
-import { TweetV2, TwitterApi } from "twitter-api-v2";
-
-const twitterApi = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+import { TweetV2, TweetV2LookupResult } from "twitter-api-v2";
 
 // https://github.com/leerob/leerob.io/blob/main/lib/twitter.ts
 export const getTweets = async (ids) => {
@@ -10,13 +8,14 @@ export const getTweets = async (ids) => {
     return [];
   }
 
-  const tweets = await twitterApi.v2.tweets(ids, {
+  const queryParams = new URLSearchParams({
+    ids: ids.join(","),
     expansions: [
       "author_id",
       "attachments.media_keys",
       "referenced_tweets.id",
       "referenced_tweets.id.author_id",
-    ],
+    ].join(","),
     "tweet.fields": [
       "attachments",
       "author_id",
@@ -26,7 +25,7 @@ export const getTweets = async (ids) => {
       "in_reply_to_user_id",
       "referenced_tweets",
       "text",
-    ],
+    ].join(","),
     "user.fields": [
       "id",
       "name",
@@ -35,7 +34,7 @@ export const getTweets = async (ids) => {
       "url",
       "username",
       "verified",
-    ],
+    ].join(","),
     "media.fields": [
       "duration_ms",
       "height",
@@ -45,7 +44,18 @@ export const getTweets = async (ids) => {
       "url",
       "width",
       "public_metrics",
-    ],
+    ].join(","),
+  });
+
+  const tweets = await fetch(
+    `https://api.twitter.com/2/tweets?${queryParams}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`
+      }
+    }
+  ).then((res) => {
+    return res.json() as Promise<TweetV2LookupResult>;
   });
 
   const getAuthorInfo = (author_id) => {
@@ -82,5 +92,5 @@ export const getTweets = async (ids) => {
 
   return (tweets.data.reduce((allTweets, tweet) => {
     return [buildMappedTweet(tweet), ...allTweets];
-  }, []) || []) as typeof buildMappedTweet[];
+  }, []) || []) as ReturnType<typeof buildMappedTweet>[];
 };
