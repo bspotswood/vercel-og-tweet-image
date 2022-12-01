@@ -207,96 +207,114 @@ function Media({ media }: { media: MediaObjectV2[] }) {
       </>);
   }
 
+  const firstWidth = 310;
+  const firstHeight = 340;
+  const otherWidth = firstWidth;
+  const otherHeight = (firstHeight / 2) - 1;
 
-  const fixedWidth = 310;
+  const img1Positioning = scaleToFit(media[0], { width: firstWidth, height: firstHeight });
+  const img2Positioning = scaleToFit(media[1], { width: otherWidth, height: otherHeight });
+  const img3Positioning = scaleToFit(media[2], { width: otherWidth, height: otherHeight });
 
-  // determine img 1 scaling ratio vs forced width
-  const img1Ratio =  fixedWidth / media[0].width;
-  const img1Height = media[0].height * img1Ratio;
-  const img1Width = media[0].width * img1Ratio;
-
-  // require a minimum height of 150px
-  const img1HeightMin = 150 > img1Height ? 150 : img1Height;
-
-  // other images will be scaled to match the height of img1 / 2 - 1px for padding
-  const otherHeight = (img1HeightMin / 2) - 1;
-  const otherWidth = img1Width;
-
-  const img2Ratio = media[1].height / otherHeight;
-  const img2Height = media[1].height * img2Ratio;
-  const img2XlateY = img2Height <= otherHeight ? 0 : -((img2Height / 2) - ((img2Height / 2) - (otherHeight / 2)));
-
-
-  const img3Ratio = media[1].height / otherHeight;
-  const img3Height = media[1].height * img3Ratio;
-  const img3XlateY = img3Height <= otherHeight ? 0 : -((img3Height / 2) - ((img3Height / 2) - (otherHeight / 2)));
-
-
+  console.log("img1Positioning", img1Positioning);
+  console.log("img2Positioning", img2Positioning);
+  console.log("img3Positioning", img3Positioning);
 
   return (
     <div tw="flex justify-between w-full">
-      <img tw="rounded-tl-lg rounded-bl-lg"
-        style={{
-          height: img1HeightMin,
-          width: img1Width,
-        }}
-        key={media[0].media_key}
-        src={media[0].url}
-      />
+      <div tw="flex rounded-tl-lg rounded-bl-lg" style={{
+        height: firstHeight,
+        width: firstWidth,
+        overflow: 'hidden',
+      }}>
+        <img
+          style={{
+            height: img1Positioning.height,
+            width: img1Positioning.width,
+            marginLeft: img1Positioning.offsetX,
+            marginTop: img1Positioning.offsetY,
+          }}
+          key={media[0].media_key}
+          src={media[0].url}
+        />
+      </div>
 
       <div tw="flex flex-col justify-between rounded-tr-lg rounded-br-lg"
         style={{
           width: otherWidth,
-          height: img1HeightMin,
+          height: firstHeight,
           overflow: 'hidden',
         }}>
         <div tw="flex" style={{
           height: otherHeight,
+          width: otherWidth,
           overflow: 'hidden',
         }}>
-          <img tw="rounded-tr-lg"
+          <img
             style={{
-              width: otherWidth,
-              objectFit: 'contain',
-              marginTop: img2XlateY,
+              height: img2Positioning.height,
+              width: img2Positioning.width,
+              marginLeft: img2Positioning.offsetX,
+              marginTop: img2Positioning.offsetY,
             }}
             key={media[1].media_key}
             src={media[1].url}
           />
         </div>
+
+
         <div tw="flex" style={{
           height: otherHeight,
+          width: otherWidth,
           overflow: 'hidden',
         }}>
-          <img tw="rounded-br-lg"
+          <img
             style={{
-              width: otherWidth,
-              objectFit: 'contain',
-              marginTop: img3XlateY,
+              height: img3Positioning.height,
+              width: img3Positioning.width,
+              marginLeft: img3Positioning.offsetX,
+              marginTop: img3Positioning.offsetY,
             }}
             key={media[2].media_key}
             src={media[2].url}
           />
         </div>
       </div>
-
-      {/*
-      <div tw="flex flex-col w-full">
-        <img tw="w-full rounded"
-          key={media[0].media_key}
-          src={media[0].url}
-        />
-      </div>
-
-      <div tw="flex flex-col">
-        <img tw="w-full rounded"
-          key={media[1].media_key}
-          src={media[1].url}
-        />
-        <img tw="w-full rounded"
-          key={media[2].media_key}
-          src={media[2].url}
-        />
-      </div>*/}
     </div>);
+}
+
+type Rect = {
+  width?: number;
+  height?: number;
+}
+
+function scaleToFit(img: Rect, window: Rect) {
+  if (!img.width || !img.height) {
+    return {
+      width: window.width,
+      height: window.height,
+      offsetX: 0,
+      offsetY: 0,
+    }
+  }
+
+  const deltaX = window.width - img.width;
+  const deltaY = window.height - img.height;
+  const scaleDirection = deltaX > 0 || deltaY > 0 ? 'up' : 'down';
+  const scaleRatio = scaleDirection == 'up' ?
+    Math.max(window.width / img.width, window.height / img.height) :
+    Math.max(window.width / img.width, window.height / img.height);
+
+  const finalHeight = img.height * scaleRatio;
+  const finalWidth = img.width * scaleRatio;
+
+  const offsetX = (window.width - finalWidth) / 2;
+  const offsetY = (window.height - finalHeight) / 2;
+
+  return {
+    height: finalHeight,
+    width: finalWidth,
+    offsetX,
+    offsetY,
+  }
 }
