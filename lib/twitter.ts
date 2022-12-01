@@ -1,6 +1,13 @@
 // Based on Lee Robinson's Twitter API wrapper
 
-import { TweetV2, TweetV2LookupResult } from "twitter-api-v2";
+import { ReferencedTweetV2, TweetV2, TweetV2LookupResult, UserV2 } from "twitter-api-v2";
+
+
+export type ReferencedTweetWithAuthor = TweetV2 & ReferencedTweetV2 & {
+  author: UserV2;
+}
+
+let x: ReferencedTweetV2;
 
 // https://github.com/leerob/leerob.io/blob/main/lib/twitter.ts
 export const getTweets = async (ids) => {
@@ -62,7 +69,7 @@ export const getTweets = async (ids) => {
     return tweets.includes.users.find((user) => user.id === author_id);
   };
 
-  const getReferencedTweets = (mainTweet: TweetV2) => {
+  const getReferencedTweets = (mainTweet: TweetV2): ReferencedTweetWithAuthor[] => {
     return (
       mainTweet?.referenced_tweets?.map((referencedTweet) => {
         const fullReferencedTweet = tweets.includes.tweets.find(

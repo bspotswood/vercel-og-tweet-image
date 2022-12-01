@@ -76,6 +76,7 @@ I'll try to remember to update this readme as things evolve. Feel free to pester
   - grid-cols-1 is unknown
   - gap-x-2 is unknown
   - gap-y-2 is unknown
+  - object-contain and object-cover are not supported, but inline style works
 - Need to specify svg fill color as 'fill' attribute on path rather than in 'style'
 - Might need to set div width to 100%? Not sure if something else is interferring or what
 - Typescript complains about "tw" attribute on "svg" elements, but it works

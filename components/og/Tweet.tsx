@@ -1,4 +1,6 @@
 import { format } from 'date-fns';
+import { MediaObjectV2, TweetPublicMetricsV2, UserV2 } from 'twitter-api-v2';
+import { ReferencedTweetWithAuthor } from '../../lib/twitter';
 
 /**
  * Supports plain text, images, quote tweets.
@@ -14,6 +16,14 @@ export default function Tweet({
   created_at,
   public_metrics,
   referenced_tweets
+}: {
+  text: string;
+  id: string;
+  author: UserV2;
+  media: MediaObjectV2[];
+  created_at?: string;
+  public_metrics?: TweetPublicMetricsV2;
+  referenced_tweets?: ReferencedTweetWithAuthor[]
 }) {
   const authorUrl = `https://twitter.com/${author.username}`;
   const likeUrl = `https://twitter.com/intent/like?tweet_id=${id}`;
@@ -97,19 +107,7 @@ export default function Tweet({
         {formattedText}
       </div>
       {media && media.length ? (
-        <div tw="flex">
-          {media.map((m) => (
-            <img
-              style={{
-                objectFit: 'cover',
-              }}
-              width="100%"
-              key={m.media_key}
-              src={m.url}
-              tw="rounded"
-            />
-          ))}
-        </div>
+        <Media media={media} />
       ) : null}
       {quoteTweet ? <Tweet {...quoteTweet} /> : null}
       <a
@@ -183,4 +181,122 @@ export default function Tweet({
       </div>
     </div>
   );
+}
+
+function Media({ media }: { media: MediaObjectV2[] }) {
+  if (!media || media.length == 0) return null;
+
+  if (media.length == 1) {
+    return (
+      <img tw="w-full rounded"
+        key={media[0].media_key}
+        src={media[0].url}
+      />
+    );
+  }
+
+  if (media.length == 2) {
+    return (
+      <>
+        {media.map((m) => (
+          <img tw="w-1/2 rounded"
+            key={m.media_key}
+            src={m.url}
+          />
+        ))}
+      </>);
+  }
+
+
+  const fixedWidth = 310;
+
+  // determine img 1 scaling ratio vs forced width
+  const img1Ratio =  fixedWidth / media[0].width;
+  const img1Height = media[0].height * img1Ratio;
+  const img1Width = media[0].width * img1Ratio;
+
+  // require a minimum height of 150px
+  const img1HeightMin = 150 > img1Height ? 150 : img1Height;
+
+  // other images will be scaled to match the height of img1 / 2 - 1px for padding
+  const otherHeight = (img1HeightMin / 2) - 1;
+  const otherWidth = img1Width;
+
+  const img2Ratio = media[1].height / otherHeight;
+  const img2Height = media[1].height * img2Ratio;
+  const img2XlateY = img2Height <= otherHeight ? 0 : -((img2Height / 2) - ((img2Height / 2) - (otherHeight / 2)));
+
+
+  const img3Ratio = media[1].height / otherHeight;
+  const img3Height = media[1].height * img3Ratio;
+  const img3XlateY = img3Height <= otherHeight ? 0 : -((img3Height / 2) - ((img3Height / 2) - (otherHeight / 2)));
+
+
+
+  return (
+    <div tw="flex justify-between w-full">
+      <img tw="rounded-tl-lg rounded-bl-lg"
+        style={{
+          height: img1HeightMin,
+          width: img1Width,
+        }}
+        key={media[0].media_key}
+        src={media[0].url}
+      />
+
+      <div tw="flex flex-col justify-between rounded-tr-lg rounded-br-lg"
+        style={{
+          width: otherWidth,
+          height: img1HeightMin,
+          overflow: 'hidden',
+        }}>
+        <div tw="flex" style={{
+          height: otherHeight,
+          overflow: 'hidden',
+        }}>
+          <img tw="rounded-tr-lg"
+            style={{
+              width: otherWidth,
+              objectFit: 'contain',
+              marginTop: img2XlateY,
+            }}
+            key={media[1].media_key}
+            src={media[1].url}
+          />
+        </div>
+        <div tw="flex" style={{
+          height: otherHeight,
+          overflow: 'hidden',
+        }}>
+          <img tw="rounded-br-lg"
+            style={{
+              width: otherWidth,
+              objectFit: 'contain',
+              marginTop: img3XlateY,
+            }}
+            key={media[2].media_key}
+            src={media[2].url}
+          />
+        </div>
+      </div>
+
+      {/*
+      <div tw="flex flex-col w-full">
+        <img tw="w-full rounded"
+          key={media[0].media_key}
+          src={media[0].url}
+        />
+      </div>
+
+      <div tw="flex flex-col">
+        <img tw="w-full rounded"
+          key={media[1].media_key}
+          src={media[1].url}
+        />
+        <img tw="w-full rounded"
+          key={media[2].media_key}
+          src={media[2].url}
+        />
+      </div>*/}
+    </div>);
 }
