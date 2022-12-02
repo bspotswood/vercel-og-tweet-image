@@ -15,7 +15,8 @@ export default function Tweet({
   media,
   created_at,
   public_metrics,
-  referenced_tweets
+  referenced_tweets,
+  scale = 1,
 }: {
   text: string;
   id: string;
@@ -23,7 +24,8 @@ export default function Tweet({
   media: MediaObjectV2[];
   created_at?: string;
   public_metrics?: TweetPublicMetricsV2;
-  referenced_tweets?: ReferencedTweetWithAuthor[]
+  referenced_tweets?: ReferencedTweetWithAuthor[];
+  scale?: number;
 }) {
   const authorUrl = `https://twitter.com/${author.username}`;
   const likeUrl = `https://twitter.com/intent/like?tweet_id=${id}`;
@@ -39,17 +41,25 @@ export default function Tweet({
     referenced_tweets && referenced_tweets.find((t) => t.type === 'quoted');
 
   return (
-    <div tw="flex flex-col rounded-lg border border-gray-200 dark:border-gray-800 px-6 py-4 my-4 w-full bg-white dark:bg-gray-900">
+    <div tw="flex flex-col rounded-lg border border-gray-200 dark:border-gray-800 px-6 py-4 my-4 w-full bg-white dark:bg-gray-900"
+      style={{
+        fontSize: 16 * scale,
+      }}
+    >
       <div tw="flex w-full">
         <a
-          tw="flex h-12 w-12"
+          tw="flex"
+          style={{
+            height: 48 * scale,
+            width: 48 * scale,
+          }}
           href={authorUrl}
           target="_blank"
           rel="noopener noreferrer"
         >
           <img
-            height={48}
-            width={48}
+            height={48 * scale}
+            width={48 * scale}
             src={author.profile_image_url}
             tw="rounded-full"
           />
@@ -183,112 +193,76 @@ export default function Tweet({
   );
 }
 
-function Media({ media }: { media: MediaObjectV2[] }) {
+function Media({ media, scale = 1 }: { media: MediaObjectV2[], scale?: number }) {
   if (!media || media.length == 0) return null;
 
-  if (media.length == 1) {
-    return (
-      <img tw="w-full rounded"
-        key={media[0].media_key}
-        src={media[0].url}
-      />
-    );
-  }
+  const previewBox: Rect = {
+    width: 620 * scale,
+    height: 340 * scale,
+  };
 
-  if (media.length == 2) {
-    return (
-      <>
-        {media.map((m) => (
-          <img tw="w-1/2 rounded"
-            key={m.media_key}
-            src={m.url}
-          />
-        ))}
-      </>);
-  }
-
-  const firstWidth = 310;
-  const firstHeight = 340;
-  const otherWidth = firstWidth;
-  const otherHeight = (firstHeight / 2) - 1;
-
-  const img1Positioning = scaleToFit(media[0], { width: firstWidth, height: firstHeight });
-  const img2Positioning = scaleToFit(media[1], { width: otherWidth, height: otherHeight });
-  const img3Positioning = scaleToFit(media[2], { width: otherWidth, height: otherHeight });
-
-  console.log("img1Positioning", img1Positioning);
-  console.log("img2Positioning", img2Positioning);
-  console.log("img3Positioning", img3Positioning);
+  const mediaTiles = calculatePreviewTiles(previewBox, media);
 
   return (
     <div tw="flex justify-between w-full">
-      <div tw="flex rounded-tl-lg rounded-bl-lg" style={{
-        height: firstHeight,
-        width: firstWidth,
-        overflow: 'hidden',
-      }}>
-        <img
-          style={{
-            height: img1Positioning.height,
-            width: img1Positioning.width,
-            marginLeft: img1Positioning.offsetX,
-            marginTop: img1Positioning.offsetY,
-          }}
-          key={media[0].media_key}
-          src={media[0].url}
-        />
-      </div>
-
-      <div tw="flex flex-col justify-between rounded-tr-lg rounded-br-lg"
-        style={{
-          width: otherWidth,
-          height: firstHeight,
-          overflow: 'hidden',
-        }}>
-        <div tw="flex" style={{
-          height: otherHeight,
-          width: otherWidth,
-          overflow: 'hidden',
-        }}>
-          <img
+      {mediaTiles.map((column, colIdx) => {
+        console.log("column", column);
+        return (
+          <div
+            key={column.tiles.map((tile) => tile.media.media_key).join('+')}
+            tw="flex flex-col justify-between"
             style={{
-              height: img2Positioning.height,
-              width: img2Positioning.width,
-              marginLeft: img2Positioning.offsetX,
-              marginTop: img2Positioning.offsetY,
-            }}
-            key={media[1].media_key}
-            src={media[1].url}
-          />
-        </div>
+              height: previewBox.height,
+              width: column.width,
+              overflow: 'hidden',
+            }}>
+            {column.tiles.map((tile, tileIdx) => {
+              const isFirstColumn = colIdx === 0;
+              const isLastColumn = colIdx === mediaTiles.length - 1;
+              const isFirstRow = tileIdx === 0;
+              const isLastRow = tileIdx === column.tiles.length - 1;
+              const twWithRounding = "flex overflow-hidden"
+                + (isFirstColumn && isFirstRow ? " rounded-tl-2xl" : "")
+                + (isFirstColumn && isLastRow ? " rounded-bl-2xl" : "")
+                + (isLastColumn && isFirstRow ? " rounded-tr-2xl" : "")
+                + (isLastColumn && isLastRow ? " rounded-br-2xl" : "");
 
-
-        <div tw="flex" style={{
-          height: otherHeight,
-          width: otherWidth,
-          overflow: 'hidden',
-        }}>
-          <img
-            style={{
-              height: img3Positioning.height,
-              width: img3Positioning.width,
-              marginLeft: img3Positioning.offsetX,
-              marginTop: img3Positioning.offsetY,
-            }}
-            key={media[2].media_key}
-            src={media[2].url}
-          />
-        </div>
-      </div>
+              return (
+                <div
+                  tw={twWithRounding}
+                  key={tile.media.media_key}
+                  style={{
+                    height: column.height,
+                  }}>
+                  <img
+                    style={{
+                      height: tile.height,
+                      width: tile.width,
+                      marginLeft: tile.offsetX,
+                      marginTop: tile.offsetY,
+                    }}
+                    src={tile.media.url}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>);
 }
 
 type Rect = {
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
 }
 
-function scaleToFit(img: Rect, window: Rect) {
+type Offset = {
+  offsetX: number;
+  offsetY: number;
+}
+
+function scaleToFit(img: Partial<Rect>, window: Rect) {
   if (!img.width || !img.height) {
     return {
       width: window.width,
@@ -317,4 +291,45 @@ function scaleToFit(img: Rect, window: Rect) {
     offsetX,
     offsetY,
   }
+}
+
+type PositionedMedia = {
+  media: MediaObjectV2;
+} & Rect & Offset;
+
+type TiledMedia = ({
+  tiles: PositionedMedia[];
+} & Rect);
+
+
+function calculatePreviewTiles(previewBox: Rect, media: MediaObjectV2[]): TiledMedia[] {
+  const groupedMedia = groupMedia(media);
+  const colWidths = previewBox.width / groupedMedia.length;
+
+  return groupedMedia.map((column) => {
+    const rowHeights = previewBox.height / column.length - column.length + 1;
+    return {
+      width: colWidths,
+      height: rowHeights,
+      tiles: column.map((mediaItem) => ({
+        media: mediaItem,
+        ...scaleToFit(mediaItem, {
+          width: colWidths,
+          height: rowHeights,
+        })
+      })),
+    };
+  });
+}
+
+function groupMedia(media: MediaObjectV2[]) {
+  return media.reduceRight((groupedMedia, mediaItem) => {
+    const curSet = groupedMedia[0];
+    if (curSet && curSet.length < 2 && media.length != 2) {
+      curSet.unshift(mediaItem);
+    } else {
+      groupedMedia.unshift([mediaItem]);
+    }
+    return groupedMedia;
+  }, [] as MediaObjectV2[][]);
 }
